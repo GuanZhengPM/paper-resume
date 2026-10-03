@@ -1,0 +1,10 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const {once}=require('node:events');const core=require('../resume-core');const renderer=require('../lib/render');
+test('fictional portrait renders, clears the education rule, and survives HTML export',{timeout:30000},async()=>{
+ const markdown=fs.readFileSync('templates/examples/internship.md','utf8');const doc={...core.document({markdown}),revision:'portrait-fixture'};
+ const output=path.resolve('tmp/tests/portrait-export/resume.html');fs.mkdirSync(path.dirname(output),{recursive:true});const html=require('../cli').exportHTML(doc,output);
+ assert.match(html,/resume\.assets\/portrait\.png/);assert.ok(fs.existsSync(path.join(path.dirname(output),'resume.assets/portrait.png')));
+ const server=require('../lib/server').start({file:'tmp/portrait-fixture.paper.json',port:0,quiet:true,getSnapshot:()=>doc});await once(server,'listening');const browser=await renderer.launchBrowser();
+ try{const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port+'/?view=render');await page.evaluate(()=>window.paperReady);await page.evaluate(async()=>{await document.fonts.ready;await document.querySelector('.resume-photo').decode();});
+ const result=await page.evaluate(()=>{const img=document.querySelector('.resume-photo');const heading=document.querySelector('#resume h2');const city=document.querySelector('#resume h3 .entry-date');return {loaded:img.naturalWidth>0,gap:heading.getBoundingClientRect().bottom-img.getBoundingClientRect().bottom,cityRight:city.getBoundingClientRect().right,ruleRight:heading.getBoundingClientRect().right};});assert.equal(result.loaded,true);assert.ok(result.gap>=96/25.4,'Portrait must clear the section rule by at least 1mm');assert.ok(Math.abs(result.cityRight-result.ruleRight)<1,'City must align with the full-width section rule despite the floating photo');
+ }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
+});

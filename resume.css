@@ -1,0 +1,109 @@
+@font-face { font-family: "Resume Sans"; src: url("fonts/NotoSansSC.ttf") format("truetype"); font-style: normal; font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Resume Serif"; src: url("fonts/NotoSerifSC.ttf") format("truetype"); font-style: normal; font-weight: 200 900; font-display: swap; }
+* { box-sizing: border-box; }
+.paper { --accent: #000; --resume-font: 11pt; --leading: 1.38; --section-gap: 2.5mm; --item-gap: 1.4mm; width: 210mm; min-height: 297mm; margin: 0 auto; padding: var(--margin-vertical, 12mm) var(--margin-horizontal, 14mm); background: #fff; box-shadow: 0 4px 25px #2339290d, 0 0 0 1px #dce1d7; color: #171717; font-family: "Times New Roman", "Resume Serif", serif; font-size: var(--resume-font); font-weight: 400; font-synthesis: style; line-height: var(--leading); overflow-wrap: anywhere; }
+.paper[data-font="sans"] { font-family: "Resume Sans", "DengXian", sans-serif; }
+.paper[data-theme="ink"] { --accent: #000; }
+.paper[data-theme="forest"] { --accent: #2e5946; }
+.paper[data-theme="navy"] { --accent: #24465d; }
+.paper[data-density="compact"] { --leading: 1.28; --section-gap: 2mm; --item-gap: 0.9mm; }
+.paper[data-density="airy"] { --leading: 1.52; --section-gap: 4mm; --item-gap: 1.8mm; }
+.paper h1 { font-size: 18pt; font-weight: 650; letter-spacing: 0; line-height: 1.3; margin: 0 0 2.5mm; color: #000; }
+.paper[data-theme="ink"] h1 { color: #000; }
+.paper[data-theme="navy"] h1 { color: #1d3546; }
+.paper blockquote { margin: 0 0 2.5mm; color: #46515c; font-size: 10.5pt; font-weight: 450; }
+.paper blockquote p { margin: 0; }
+.paper p { margin: 0 0 1.6mm; }
+.paper h1 ~ p:first-of-type { font-size: var(--resume-font); color: #171717; margin-bottom: 2.5mm; }
+.paper h2 { font-size: 14pt; font-weight: 750; color: var(--accent); margin: var(--section-gap) 0 1.5mm; padding-bottom: 0.6mm; border-bottom: 0.35mm solid var(--accent); letter-spacing: 0; line-height: 1.25; break-after: avoid; }
+.paper h3 { display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; font-size: 12pt; font-weight: 400; line-height: 1.3; margin: 1.7mm 0 1.3mm; break-after: avoid; }
+.paper h3 .entry-title { min-width: 0; }
+.paper h3:has(.entry-date) { clear: both; }
+.paper .page-spacing { display: none; }
+.paper h3 .entry-date { font-size: var(--resume-font); font-weight: 400; color: #171717; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums lining-nums; letter-spacing: 0; }
+.paper h4 { margin: 2mm 0; font-size: var(--resume-font); break-after: avoid; }
+.paper ul, .paper ol { margin: 0 0 2mm; padding-left: 5mm; }
+.paper li { margin: 0 0 var(--item-gap); padding-left: 0.4mm; }
+.paper li::marker { color: var(--accent); }
+.paper li p { margin-bottom: 1mm; }
+.paper a { color: inherit; text-decoration: none; }
+.paper strong { font-weight: 700; }
+.paper .line-styled .entry-date { font-size: inherit; }
+.paper .line-styled[style*="text-align"] { display: block; }
+.paper .line-styled[style*="text-align"] .entry-date { margin-left: 3mm; }
+.paper u { text-underline-offset: 2px; }
+.paper .literal-spaces { white-space: pre; }
+.paper hr { border: 0; border-top: 1px solid #ccd4cc; margin: 4mm 0; }
+.paper table { width: 100%; border-collapse: collapse; margin: 2mm 0; font-size: 10pt; }
+.paper th, .paper td { text-align: left; padding: 1.5mm; border-bottom: 1px solid #e1e5de; }
+.paper pre { white-space: pre-wrap; font-size: 9pt; }
+.paper .layout-center { text-align: center; }
+.paper { zoom: var(--preview-zoom, 1); }
+.paper .layout-right { text-align: right; }
+.paper .layout-left { text-align: left; }
+.paper .layout-center h3, .paper .layout-right h3, .paper .layout-left h3 { display: block; }
+.paper .layout-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 3mm; align-items: baseline; margin: 3mm 0 2mm; break-after: avoid; }
+.paper .layout-row > div { min-width: 0; }
+.paper .layout-row > div:nth-child(2) { text-align: center; }
+.paper .layout-row > div:last-child { text-align: right; font-size: var(--resume-font); color: #171717; font-variant-numeric: tabular-nums lining-nums; }
+.paper .layout-row[data-columns="2"] { grid-template-columns: minmax(0, 1fr) auto; }
+.paper h3 + .layout-row { margin-top: 0; margin-bottom: 1.3mm; }
+.paper .experience-title { margin-bottom: var(--experience-inner, 1mm); }
+.paper .experience-separated { margin-top: var(--experience-gap, 4mm); }
+.paper .experience-content { margin-top: 0; margin-bottom: var(--experience-inner, 1mm); }
+.paper .experience-title + .layout-row { margin-top: 0; }
+.paper .experience-content li, .paper .experience-content li p { margin-bottom: var(--experience-inner, 1mm); }
+.paper .layout-row[data-columns="2"] > div:last-child { white-space: nowrap; }
+.paper .layout-keep { break-inside: avoid; }
+.paper .layout-error { color: #a23e2c; }
+.paper .page-break { margin: 8mm 0; height: 0; border-top: 1px dashed #aab5a8; }
+.paper .layout-center:has(> h1) > p:last-child { font-size: var(--resume-font); color: #171717; }
+
+@page { size: A4; margin: 12mm 14mm; }
+@media print {
+  .paper { width: auto; min-height: 0; padding: 0; margin: 0; box-shadow: none; zoom: 1; }
+  .paper h1, .paper h2, .paper h3, .paper h4 { break-after: avoid; }
+  .paper p, .paper li { orphans: 2; widows: 2; }
+  .paper li { break-inside: avoid; }
+  .paper .layout-row { break-inside: avoid; }
+  .paper .page-break { break-before: page; border: 0; margin: 0; }
+  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
+.paper { padding-top:var(--margin-top,var(--margin-vertical));padding-bottom:var(--margin-bottom,var(--margin-vertical)); }
+.paper { line-height:var(--custom-leading,var(--leading)); }
+.paper .resume-photo { width:24mm;height:31mm;object-fit:contain;position:absolute;right:0;top:-2mm;margin:0; }
+.paper p:has(> .resume-photo) { position:relative;margin:0;height:0; }
+.paper .resume-logo { width:6mm;height:6mm;object-fit:contain;vertical-align:middle;margin-left:2mm; }
+.paper h1,.paper h2,.paper h3 { overflow-wrap:anywhere; }
+
+.paper h3:has(.resume-logo):not(:has(.entry-date)) { display:block; }
+
+/* Allocate free page space between content groups without stretching text. */
+.paper h2 { margin-top:calc(var(--section-gap) + var(--page-spacing,0mm) * 2); }
+.paper h3 { margin-top:calc(1.7mm + var(--page-spacing,0mm)); }
+.paper .experience-separated { margin-top:calc(var(--experience-gap,4mm) + var(--page-spacing,0mm)); }
+.paper p { margin-bottom:calc(1.6mm + var(--page-spacing,0mm) * .5); }
+.paper ul,.paper ol { margin-bottom:calc(2mm + var(--page-spacing,0mm)); }
+.paper li { margin-bottom:calc(var(--item-gap) + var(--page-spacing,0mm) * .25); }
+.paper .experience-content { margin-bottom:calc(var(--experience-inner,1mm) + var(--page-spacing,0mm)); }
+.paper .experience-content li,.paper .experience-content li p { margin-bottom:calc(var(--experience-inner,1mm) + var(--page-spacing,0mm) * .25); }
+.paper .role-title { margin-top:calc(var(--role-gap,1mm) + var(--page-spacing,0mm) * .25); margin-bottom:var(--experience-inner,1mm); }
+.paper p:has(> .resume-photo),.paper blockquote p { margin:0; }
+@media print { .paper { padding:0; } }
+
+.paper[data-font="yahei"]{font-family:"Microsoft YaHei","微软雅黑","Resume Sans",sans-serif}
+.paper[data-font="times"]{font-family:"Times New Roman","Resume Serif",serif}
+.paper[data-font="arial"]{font-family:Arial,"Microsoft YaHei","Resume Sans",sans-serif}
+.paper[data-font="calibri"]{font-family:Calibri,"Microsoft YaHei","Resume Sans",sans-serif}
+.paper[data-font="simsun"]{font-family:SimSun,"宋体","Resume Serif",serif}
+.paper[data-font="kaiti"]{font-family:KaiTi,"楷体","Resume Serif",serif}
+.paper[data-font="fangsong"]{font-family:FangSong,"仿宋","Resume Serif",serif}
+
+.paper .resume-photo.photo-left{right:auto;left:0}
+
+.paper .resume-header-logo{width:18mm;height:16mm;object-fit:contain;position:absolute;left:0;top:0;margin:0}.paper .resume-header-logo.logo-right{left:auto;right:0}.paper p:has(> .resume-header-logo){position:relative;margin:0;height:0}
+
+.paper .resume-qr{width:18mm;height:18mm;object-fit:contain;position:absolute;right:0;top:0;margin:0;image-rendering:pixelated}.paper .resume-qr.qr-left{right:auto;left:0}.paper p:has(> .resume-qr){position:relative;margin:0;height:0}
+
+.paper[data-font="custom"]{font-family:var(--local-font),"Resume Serif",serif;}
