@@ -133,12 +133,40 @@ return {parse: text => marked.parse(text), inline: text => marked.parseInline(te
 function decorateExperiences(resume) {
   // Keep corner images out of text flow; share each side without overlap.
   let imagePage=[],pageElements=[];
+  const photoCounts=new Map();
+  for(const img of resume.querySelectorAll('.resume-photo')){
+    const src=img.getAttribute('src')||img.querySelector('image')?.getAttribute('href'),key='照片:'+src,count=photoCounts.get(key)||0;photoCounts.set(key,count+1);
+    img._manualBox=resume._imagePositions?.[key+':'+count];
+  }
   const placeImages=()=>{
     const content=pageElements.filter(el=>!el.matches('.page-spacing,.layout-gap')&&!el.matches('p:has(> .resume-header-logo),p:has(> .resume-photo),p:has(> .resume-qr)'));
     const section=content.slice(1).find(el=>/^H[1-6]$/.test(el.tagName));
-    if(section){for(const img of imagePage){const available=(section.getBoundingClientRect().top-img.parentElement.getBoundingClientRect().top)*25.4/96;const photo=img.matches('.resume-photo');const qr=img.matches('.resume-qr');const height=Math.min(photo?31:qr?18:16,Math.max(1,available+(photo?1:-1)));img.style.height=height+'mm';if(photo)img.style.width=(height*24/31)+'mm';if(qr)img.style.width=height+'mm';}}
+    // Explicit/imported photo size reserves header space instead of shrinking the portrait.
+    const manualPhoto=imagePage.find(img=>img.matches('.resume-photo')&&img._manualBox);
+    const requestedHeight=manualPhoto?(manualPhoto._manualBox.layoutHeight||manualPhoto._manualBox.height):(Number(resume.dataset.photoHeight)||0);
+    const header=content.find(el=>el.matches('.layout-center,.layout-left,.layout-right'));
+    const sizedPhotos=imagePage.filter(img=>img.matches('.resume-photo'));
+    if(requestedHeight&&header&&sizedPhotos.length){
+      const reserve=requestedHeight*Math.max(...sizedPhotos.map(img=>Number(img.dataset.aspect)||(img.naturalWidth/img.naturalHeight)||24/31))+3;
+      header.style.paddingLeft=reserve+'mm';header.style.paddingRight=reserve+'mm';
+      header.style.boxSizing='border-box';header.classList.add('photo-header');
+      const start=sizedPhotos[0].parentElement.getBoundingClientRect().top;
+      let titleSpace=0;
+      if(section){
+        section.style.paddingRight=sizedPhotos.some(img=>!img.matches('.photo-left'))?reserve+'mm':'';
+        section.style.paddingLeft=sizedPhotos.some(img=>img.matches('.photo-left'))?reserve+'mm':'';
+        const css=getComputedStyle(section);
+        titleSpace=(section.getBoundingClientRect().height+parseFloat(css.marginTop)-parseFloat(css.borderBottomWidth))*25.4/96;
+      }
+      header.style.minHeight=Math.max(0,requestedHeight+.3-titleSpace-(header.getBoundingClientRect().top-start)*25.4/96)+'mm';
+    }
+    {for(const img of imagePage){const available=section?(section.getBoundingClientRect().top-img.parentElement.getBoundingClientRect().top)*25.4/96:32;const photo=img.matches('.resume-photo');const qr=img.matches('.resume-qr');const height=photo&&requestedHeight?requestedHeight:Math.min(photo?31:qr?18:16,Math.max(1,available-1));img.style.height=height+'mm';if(photo)img.style.width=(height*(Number(img.dataset.aspect)||(img.naturalWidth/img.naturalHeight)||24/31))+'mm';if(qr)img.style.width=height+'mm';}}
     const photos=imagePage.filter(img=>img.matches('.resume-photo'));
-    for(const side of ['left','right']){const fixed=imagePage.filter(img=>img.matches('.resume-photo,.resume-qr')&&(img.matches('.photo-left,.qr-left')?'left':'right')===side);const reserved=imagePage.some(img=>img.matches('.resume-header-logo')&&(img.matches('.logo-right')?'right':'left')===side)?30:42;const total=fixed.reduce((sum,img)=>sum+img.getBoundingClientRect().width*25.4/96,0);const scale=Math.min(1,(reserved-Math.max(0,fixed.length-1)*3)/Math.max(1,total));if(scale<1)for(const img of fixed){img.style.width=img.getBoundingClientRect().width*25.4/96*scale+'mm';img.style.height=img.getBoundingClientRect().height*25.4/96*scale+'mm';}}
+    for(const side of ['left','right']){const fixed=imagePage.filter(img=>img.matches('.resume-photo,.resume-qr')&&(img.matches('.photo-left,.qr-left')?'left':'right')===side);const reserved=imagePage.some(img=>img.matches('.resume-header-logo')&&(img.matches('.logo-right')?'right':'left')===side)?30:42;const total=fixed.reduce((sum,img)=>sum+img.getBoundingClientRect().width*25.4/96,0);const scale=requestedHeight&&fixed.some(img=>img.matches('.resume-photo'))?1:Math.min(1,(reserved-Math.max(0,fixed.length-1)*3)/Math.max(1,total));if(scale<1)for(const img of fixed){img.style.width=img.getBoundingClientRect().width*25.4/96*scale+'mm';img.style.height=img.getBoundingClientRect().height*25.4/96*scale+'mm';}}
+    if(requestedHeight&&header&&section){
+      const rule=section.getBoundingClientRect().bottom-parseFloat(getComputedStyle(section).borderBottomWidth);
+      for(const img of photos)img.style.top=Math.max(0,rule-img.parentElement.getBoundingClientRect().top-img.getBoundingClientRect().height-.3*96/25.4)+'px';
+    }
     const occupied=side=>Math.max(0,...photos.filter(img=>(img.matches('.photo-left')?'left':'right')===side).map(img=>img.getBoundingClientRect().width*25.4/96+3));
     const offsets={left:occupied('left'),right:occupied('right')};
     for(const qr of imagePage.filter(img=>img.matches('.resume-qr'))){const side=qr.matches('.qr-left')?'left':'right';qr.style[side]=offsets[side]+'mm';offsets[side]+=qr.getBoundingClientRect().width*25.4/96+3;}

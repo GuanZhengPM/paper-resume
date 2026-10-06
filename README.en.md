@@ -10,7 +10,7 @@ When writing a resume, focus on explaining your experience and results. Your age
 
 ![Four resume examples](docs/resume-examples.png)
 
-This image combines pages from four PDFs; the bilingual example has separate Chinese and English pages. Open the PDFs: [work and projects](docs/templates/projects.pdf), [internships and campus](docs/templates/internship.pdf), [research and publications](docs/templates/academic.pdf), [Chinese/English](docs/templates/bilingual.pdf). The portrait is a generated fictional character.
+The image shows design examples. See the current template styles and actual pagination in these PDFs: [work and projects](docs/templates/projects.pdf), [internships and campus](docs/templates/internship.pdf), [research and publications](docs/templates/academic.pdf), [Chinese/English](docs/templates/bilingual.pdf). The portrait is a generated fictional character.
 
 ## Getting started
 
@@ -33,13 +33,39 @@ The tool searches for Chrome or Edge on Windows and macOS and common Chromium pa
 node cli.js render --browser-path "/path/to/chrome" --output output/preview
 ```
 
+## Using Codex
+
+[Download v1.1.0 and the standalone skill](https://github.com/GuanZhengPM/paper-resume/releases/tag/v1.1.0). The skill archive includes first-use instructions for installing the companion CLI. If you already have the project, use the command below.
+
+Run `node cli.js install-agent` in this repository to install the `paper-resume` skill. New Codex conversations can discover it; an existing conversation can read `skills/paper-resume/SKILL.md` directly.
+
+Upload a resume and ask to import it. The host agent reviews the source, repairs reading order and broken paragraphs, maps experience fields, applies a chosen template, verifies the PDF, and opens the editable document. The CLI exposes `intake`, `import --structure`, `show --structured`, and revision-checked block edits. Manual and AI edits share the current Markdown document. No additional model API is needed.
+
+Browser uploads automatically repair common line breaks and apply template presets, but do not invoke the host model. Use Codex for scans, complex columns, and image text. Templates allow natural pagination; one-page fitting is explicit. Originals and previous versions remain local.
+
+## Content optimization
+
+Ask Codex to improve a resume for a target role or JD, or request conservative wording only. The installed skill reads the current resume, diagnoses specific gaps, asks about missing responsibilities and results, and produces before/after suggestions with reasons and source references. It supports role-specific guidance and a `plain` mode without forced quantification. The host agent performs the reasoning; no separate model API is required.
+
+```bash
+node cli.js content --id ID --target 'Product manager' --role product --mode impact --output tmp/content-input.json
+node cli.js content --id ID --action preview --plan tmp/content-plan.json --output tmp/content-review.md
+node cli.js content --id ID --action apply --plan tmp/content-plan.json --select c1,c3 --dry-run
+node cli.js content --id ID --action apply --plan tmp/content-plan.json --select c1,c3
+node cli.js render --id ID --output output/content-updated
+```
+
+Optional `--jd` and `--brief` accept UTF-8 text files. The proposal schema is returned by `schema` and the preparation command. Preview does not mutate the resume; apply checks its revision, saves a backup, and preserves unrelated text and settings. Unresolved suggestions, example placeholders, and unsupported new numbers cannot be applied. Quote and number checks do not establish factual truth; the agent must verify meaning, ownership and user-supplied facts. Content consultation happens in the Codex conversation, while manual editing and PDF preview remain in the browser.
+
+Uploading in the browser imports and lays out the resume; it does not automatically rewrite content. In Codex, name the uploaded resume and ask to optimize it for a target role. Ask for suggestions only if you do not want edits applied. Both interfaces use the same document.
+
 ## Using the page
 
 With no resumes, the app opens the home page. Otherwise a link without a resume ID restores the last edited resume. The brand and logo return to home from the editor and are inactive on home. Starting the server does not create a sample resume.
 
-The gallery offers work/projects, internships/campus activities, research/publications, and Chinese/English samples. Select a template and start with the sample or upload an existing resume. Each creation makes a separate document. Templates are plain Markdown; sections can be changed or reordered.
+The gallery offers work/projects, internships/campus activities, research/publications, and Chinese/English samples. Select a template and start with the sample or upload an existing resume. Each creation makes a separate document. Templates arrange real sections and apply typography, margins, and entry layout; manual customization remains available.
 
-Uploads accept text-based PDF, DOCX, Markdown, TXT, and this tool's JSON documents, up to 25MB. Convert older `.doc` files to `.docx` first. Check imported content, especially multi-column reading order and Word text boxes. There is no built-in OCR; an agent or user must transcribe scans. Images in uploaded documents are not imported automatically.
+Uploads accept text-based PDF, DOCX, Markdown, TXT, and this tool's JSON documents, up to 25MB. Convert older `.doc` files to `.docx` first. Check imported content, especially multi-column reading order and Word text boxes. There is no built-in OCR; an agent or user must transcribe scans. An unambiguous small header portrait is imported automatically from PDF or DOCX; other images and ambiguous layouts need review.
 
 The editor is on the left and the PDF on the right. One Enter inserts a line break; two leave a blank line. Select text to apply bold, italic, underline, or a link, or use Markdown. Images can be PNG, JPEG, or WebP up to 2MB. Portraits go at the top right; logos can be attached to a heading.
 
@@ -203,8 +229,8 @@ Operations run in order and write once after all succeed. The response includes 
 | Command | Use |
 | --- | --- |
 | `init --input resume.md` | Create the primary document; no overwrite by default |
-| `import --input resume.pdf --dry-run` | Inspect extracted text; remove `--dry-run` to import |
-| `templates` / `template --name projects` | List templates / add missing section headings |
+| `import --input resume.pdf --dry-run` | Inspect extraction; normal import creates a new document and lays it out; use `--structure` for reviewed content |
+| `templates` / `template --name projects` | List templates / rearrange real sections and apply template styling |
 | `style` / `row` / `replace` | Edit local style / columns / exact text |
 | `normalize-spaces` | Remove single Chinese/Latin/digit spaces, preserving syntax and multiple spaces |
 | `image --input photo.png --kind photo` | Add a portrait; use `--kind logo --heading HEADING` for a logo |
@@ -224,7 +250,7 @@ CLI stdout is JSON. Exit codes are 0 for success, 1 for errors, and 2 for unsucc
 | `projects` | Work, personal projects, education, skills |
 | `internship` | Education, internships, campus, projects; sample portrait |
 | `academic` | English education, research, publications, projects |
-| `bilingual` | One Chinese page and one English page |
+| `bilingual` | Separate language pages with natural continuation |
 | `research` | Chinese research/publications; CLI only, no separate gallery card |
 | `preserve` | Import without additional headings |
 
@@ -276,3 +302,5 @@ npm test
 ```
 
 Tests require dependencies and a browser and write fixtures under `tmp/tests/`. Code uses the [MIT license](LICENSE). Fonts and bundled libraries retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Images in the PDF preview can be dragged and resized proportionally using their corner handles. PDF export preserves the saved placement and dimensions. Manual placement may overlap text. Reset restores automatic placement and size. Standalone HTML export uses automatic layout; use PDF to preserve manual image placement.

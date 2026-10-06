@@ -1,0 +1,29 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
+const store=require('../lib/document-store'),content=require('../lib/content'),{main}=require('../cli');
+function fixture(){const folder=path.resolve('tmp/tests',randomUUID()),file=path.join(folder,'resume.paper.json');const doc=store.commit(file,{markdown:'# Example\n\n## 工作经历\n### Example Company | 2024.01 - Present\n\n- 整理了用户反馈，推动3项功能迭代。\n- 协助上线。\n\n## 个人总结\n做事认真。\n',settings:{photoHeight:'32',imagePositions:{'照片:test:0':{page:1,x:160,y:8,width:24,height:32}},fontSize:'10.5'}},null).document;return {folder,file,doc};}
+function plan(doc){return {version:1,expectedRevision:doc.revision,target:'产品经理',role:'product',mode:'impact',diagnosis:['第一条有行动和结果，可明确两者的联系。'],answers:[],questions:[{question:'上线时你负责哪一部分？',status:'open'}],changes:[{id:'c1',before:'整理了用户反馈，推动3项功能迭代。',after:'梳理用户反馈并推动3项功能迭代。',reason:'保留实际行动与结果，删去冗余表达。',status:'ready',evidence:[{source:'resume',quote:'整理了用户反馈，推动3项功能迭代。'}]},{id:'c2',before:'协助上线。',after:'推进上线，使转化率提升[示例：15%]。',reason:'须了解本人职责与真实结果后再写。',status:'needs-input',evidence:[{source:'resume',quote:'协助上线。'}]}]};}
+test('content prepare, report, selective apply and stale detection share the current editable document',async()=>{
+ const {folder,file,doc}=fixture(),packet=path.join(folder,'input.json');await main(['content','--file',file,'--target','产品经理','--role','product','--output',packet]);const prepared=JSON.parse(fs.readFileSync(packet));assert.equal(prepared.resume.markdown,doc.markdown);assert.equal(prepared.expectedRevision,doc.revision);assert.equal(store.load(file).revision,doc.revision);
+ const proposal=path.join(folder,'plan.json');fs.writeFileSync(proposal,JSON.stringify(plan(doc)));const report=path.join(folder,'review.md');const preview=await main(['content','--file',file,'--action','preview','--plan',proposal,'--output',report]);assert.equal(preview.canApply,true);assert.match(fs.readFileSync(report,'utf8'),/梳理用户反馈/);assert.equal(preview.changes[1].selected,false);assert.equal(store.load(file).revision,doc.revision);
+ await assert.rejects(main(['content','--file',file,'--action','apply','--plan',proposal,'--select','c2']),{code:'CONTENT_NOT_READY'});assert.equal(store.load(file).revision,doc.revision);
+ const dry=await main(['content','--file',file,'--action','apply','--plan',proposal,'--select','c1','--dry-run']);assert.equal(dry.applied,false);assert.equal(store.load(file).revision,doc.revision);
+ const applied=await main(['content','--file',file,'--action','apply','--plan',proposal,'--select','c1']);assert.equal(applied.applied,true);assert.ok(fs.existsSync(applied.backup));const next=store.load(file);assert.equal(next.markdown,doc.markdown.replace('整理了用户反馈，推动3项功能迭代。','梳理用户反馈并推动3项功能迭代。'));assert.deepEqual(next.settings,doc.settings);assert.match(next.markdown,/协助上线/);
+ await assert.rejects(main(['content','--file',file,'--action','apply','--plan',proposal]),{code:'REVISION_CONFLICT'});
+});
+test('unsubstantiated metrics and invented quote references are rejected; real added facts can support a rewrite',()=>{
+ const {doc}=fixture(),p=plan(doc);p.changes=p.changes.slice(0,1);p.changes[0].after='推动5项功能迭代。';assert.equal(content.review(doc,p).canApply,false);
+ p.answers=[{id:'fact-1',text:'后续又完成2项，一共推动5项功能迭代。'}];p.changes[0].evidence.push({source:'fact-1',quote:'一共推动5项功能迭代。'});assert.equal(content.review(doc,p).canApply,true);
+ p.changes[0].evidence[1].quote='不存在的补充';assert.throws(()=>content.review(doc,p));
+});
+test('ambiguous, overlapping and unknown selections fail, and unrelated Markdown remains byte-for-byte stable',()=>{
+ const {doc}=fixture(),p=plan(doc);assert.throws(()=>content.review(doc,p,'missing'));
+ p.changes.push({...p.changes[0],id:'c3'});assert.throws(()=>content.review(doc,p),/重叠/);
+ const repeated={...doc,markdown:doc.markdown+'\n做事认真。\n'};repeated.revision=store.revision(repeated);p.expectedRevision=repeated.revision;p.changes=[{id:'c1',before:'做事认真。',after:'认真核对交付内容。',reason:'限定描述',status:'ready',evidence:[{source:'resume',quote:'做事认真。'}]}];assert.throws(()=>content.review(repeated,p),/重复/);p.changes[0].occurrence=2;assert.equal(content.review(repeated,p).document.markdown,repeated.markdown.replace(/做事认真。\n$/,'认真核对交付内容。\n'));
+});
+test('installer packages reference files and preflights conflicts without overwriting customized skill',()=>{
+ const folder=path.resolve('tmp/tests',randomUUID()),install=require('../lib/agent-install').install;const result=install({home:folder});const reference=path.join(path.dirname(result.skill),'references','roles.md');assert.ok(fs.existsSync(reference));fs.writeFileSync(reference,'Local customization');const original=fs.readFileSync(result.skill,'utf8');assert.throws(()=>install({home:folder}),{code:'SKILL_EXISTS'});assert.equal(fs.readFileSync(result.skill,'utf8'),original);install({home:folder,force:true});assert.equal(fs.readFileSync(reference+'.backup','utf8'),'Local customization');assert.match(fs.readFileSync(reference,'utf8'),/ai-product/);
+});
+test('standalone skill archive contains instructions and license but no local installation or resumes',async()=>{
+ const folder=path.resolve('tmp/tests',randomUUID());const result=await require('../scripts/package-skill').pack(folder),JSZip=require('../lib/render').dependency('jszip');const zip=await JSZip.loadAsync(fs.readFileSync(result.file));assert.ok(zip.file('paper-resume/SKILL.md'));assert.ok(zip.file('paper-resume/references/setup.md'));assert.ok(zip.file('paper-resume/LICENSE'));assert.ok(!Object.keys(zip.files).some(n=>/installation\.json|\.paper\.json|\.backup/.test(n)));assert.equal(require('node:crypto').createHash('sha256').update(fs.readFileSync(result.file)).digest('hex'),result.sha256);
+});

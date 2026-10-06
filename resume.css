@@ -72,7 +72,7 @@
 
 .paper { padding-top:var(--margin-top,var(--margin-vertical));padding-bottom:var(--margin-bottom,var(--margin-vertical)); }
 .paper { line-height:var(--custom-leading,var(--leading)); }
-.paper .resume-photo { width:24mm;height:31mm;object-fit:contain;position:absolute;right:0;top:-2mm;margin:0; }
+.paper .resume-photo { width:24mm;height:31mm;object-fit:contain;position:absolute;right:0;top:0;margin:0; }
 .paper p:has(> .resume-photo) { position:relative;margin:0;height:0; }
 .paper .resume-logo { width:6mm;height:6mm;object-fit:contain;vertical-align:middle;margin-left:2mm; }
 .paper h1,.paper h2,.paper h3 { overflow-wrap:anywhere; }
@@ -107,3 +107,14 @@
 .paper .resume-qr{width:18mm;height:18mm;object-fit:contain;position:absolute;right:0;top:0;margin:0;image-rendering:pixelated}.paper .resume-qr.qr-left{right:auto;left:0}.paper p:has(> .resume-qr){position:relative;margin:0;height:0}
 
 .paper[data-font="custom"]{font-family:var(--local-font),"Resume Serif",serif;}
+
+/* Templates provide consistent hierarchy; explicit inline styles remain authoritative. */
+.paper[data-template]:not([data-template=""]) h2 { font-size:12pt; }
+.paper[data-template]:not([data-template=""]) h3 { font-size:11pt; font-weight:600; }
+.paper[data-template="internship"] h2 { border-bottom-width:.25mm; }
+.paper[data-template="academic"] h2 { font-size:13pt; }
+.paper[data-template="academic"] h3 { font-size:11pt; }
+
+/* Treat the identity text and portrait as one vertically balanced header. */
+.paper .photo-header{display:flex;flex-direction:column;justify-content:center}
+.paper .photo-header>:last-child{margin-bottom:0}
