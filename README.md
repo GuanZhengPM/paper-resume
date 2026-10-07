@@ -2,6 +2,17 @@
 
 [English](README.en.md)
 
+## 这个 Fork 改了什么
+
+本仓库由 [Zhoeyi / zaozhiyi](https://github.com/zaozhiyi) 维护，基于 [GuanZhengPM 的纸页简历](https://github.com/GuanZhengPM/paper-resume) 继续开发。原项目提供本地 Markdown 编辑、CLI 和 PDF 导出；本次改进围绕“上传简历后套用可编辑模板，并在同一份文档中结合手动编辑与 Agent 内容修改”。
+
+- **导入与模板适配**：修正常见断行，整理章节和经历结构；保留额外栏目、可识别的原稿加粗与证件照，检查真实分页。
+- **预览与图片编辑**：改善高分屏清晰度，支持在 PDF 预览中拖动、等比例缩放图片，导出保留位置和尺寸。
+- **内容优化流程**：新增岗位诊断、经历追问、原文与改文对照、选择性应用；版本检查避免覆盖手动编辑。
+- **CLI 与 skill**：提供结构化导入和修改命令、Codex skill、安装说明与独立技能包，让网页和 Agent 操作同一份简历。
+
+改进前的基线是 [`e59799b`](https://github.com/GuanZhengPM/paper-resume/commit/e59799b1d7484bd35c6614faf1adf67eee0baf8d)，功能提交由本账号署名。此项改进也已通过 [上游 PR #1](https://github.com/GuanZhengPM/paper-resume/pull/1) 回馈原项目。以下保留项目的完整使用说明与原有许可证。
+
 纸页简历是在本机运行的简历编辑器。正文用Markdown保存，可以在页面编辑，也可以由Agent通过CLI修改。右侧预览显示实际PDF分页，导出的是同一份PDF。
 
 “纸页”与“职业”（zhiye）谐音，寓意把职业经历整理成一页纸简历。
@@ -10,7 +21,7 @@
 
 ![四份简历示例](docs/resume-examples.png)
 
-上图直接由四份PDF页面组合；双语示例保留中文、英文各一页。查看原PDF：[工作与项目](docs/templates/projects.pdf)、[实习与校园](docs/templates/internship.pdf)、[科研与论文](docs/templates/academic.pdf)、[中英双语](docs/templates/bilingual.pdf)。证件照为生成的拟人角色。
+上图为设计示例。当前模板排版与真实分页见PDF：[工作与项目](docs/templates/projects.pdf)、[实习与校园](docs/templates/internship.pdf)、[科研与论文](docs/templates/academic.pdf)、[中英双语](docs/templates/bilingual.pdf)。证件照为生成的拟人角色。
 
 ## 开始使用
 
@@ -35,19 +46,39 @@ Windows和macOS会查找已安装的Chrome或Edge，Linux会尝试常见Chromium
 node cli.js render --browser-path "/path/to/chrome" --output output/preview
 ```
 
+## 在 Codex 中使用
+
+[下载 v1.1.0 和独立 skill](https://github.com/GuanZhengPM/paper-resume/releases/tag/v1.1.0)。独立 skill 压缩包只包含技能说明；首次使用时会指导 Agent 安装配套 CLI。已经下载项目的用户按下方命令安装即可。
+
+在项目目录安装技能：
+
+```sh
+node cli.js install-agent
+```
+
+之后在 Codex 上传简历并说“导入纸页简历”，Agent 会对照原稿恢复段落和经历结构，选择或使用你指定的模板，生成实际 PDF 并打开可编辑页面。新会话会发现技能；当前会话可以读取 `skills/paper-resume/SKILL.md`。手改和自然语言修改共享同一份文档，冲突时保留草稿。
+
+流程是 `intake` 提取 → 宿主 Agent 核对结构 → `import --structure` 校验与排版。无需新增模型 API。模板规定章节顺序、字体、边距和经历布局，内容从当前 Markdown 实时读取。原稿和旧版本保留，不靠删减内容压页。
+
+网页直接上传会自动整理常见断行和列表并套模板；复杂多栏、扫描件和图片文字由 Codex 的文档/视觉能力核对，网页本身不会自动调用模型。位置明确的页头证件照会自动导入；其他图片和有歧义的布局需核对。
+
+网页上传只完成导入和排版，**不会自动改写内容**。上传后在 Codex 指定简历名称并说“结合目标岗位优化内容”；只有诊断需求时可说“先给建议，不写回”。不需要再次上传或把文本复制回网页。
+
 ## 页面操作
 
 没有简历时显示首页；有简历时，不带简历ID的链接会恢复上次编辑的简历。编辑页点击品牌或logo返回首页，首页品牌不可点击。启动服务不会自动创建示例简历。
 
-首页提供工作与项目、实习与校园、科研与论文、中英双语四种示例。选模板后，可以从示例开始，或上传已有文件。每次创建都生成独立简历，不会替换上一份。模板是普通Markdown，不限制章节顺序。
+首页提供工作与项目、实习与校园、科研与论文、中英双语四种示例。选模板后，可以从示例开始，或上传已有文件。每次创建都生成独立简历，不会替换上一份。模板会排列真实章节并应用字体、边距与经历布局，之后仍可手动调整。缺少的栏目不生成，自我评价等额外栏目保留并使用统一样式。
 
-上传支持含文字的PDF、DOCX、Markdown、TXT和本工具的JSON文档，上限25MB。旧版`.doc`请先另存为`.docx`。导入后要核对双栏PDF的阅读顺序，以及Word文本框、图片中的文字。工具不提供OCR，扫描件需由Agent识别或自行补充。原文件中的图片不会自动导入。
+上传支持含文字的PDF、DOCX、Markdown、TXT和本工具的JSON文档，上限25MB。旧版`.doc`请先另存为`.docx`。导入后要核对双栏PDF的阅读顺序，以及Word文本框、图片中的文字。工具不提供OCR，扫描件需由Agent识别或自行补充。可自动保留位置明确的页头证件照，其他图片需核对后补充。
 
 编辑页左侧是正文，右侧是PDF。一个回车换行，两个回车空一行。选中文字后可点击加粗、斜体、下划线或链接按钮，也可直接写Markdown。图片按钮支持PNG、JPEG、WebP，上限2MB；证件照默认右上角，logo默认左上角。选择logo后可改为具体名称旁的行内位置；不选择时不会自动放到章节标题后面。
 
-“样式设置”调整字体、字号、行距、边距和各层间距。“一键排版”清理多余空行，按内容调整字号与间距；一页以内也会整理留白。超过一页时显示“压成一页”。在字号、边距下限内仍放不下时会提示失败，保留原文，不自动删减经历。
+“样式设置”可切换模板，也可调整字体、字号、行距、边距和各层间距。“一键排版”清理多余空行并整理留白；已选模板保持规范字号，较长简历自然分页。超过一页时显示“压成一页”。在字号、边距下限内仍放不下时会提示失败，保留原文，不自动删减经历。
 
 默认名称取正文第一个标题，通常就是姓名。点击顶部名称可重命名，手动改名后保留自定义名称，正文姓名不变。顶部、侧栏、PDF下载使用相同名称。侧栏可切换简历或创建其他版本。
+
+右侧预览中的照片、Logo 和二维码可直接拖动；选中图片后拖动四角可等比例缩放。修改自动保存，PDF 导出使用相同的位置与尺寸。照片高度输入也会改变实际照片尺寸。手动摆放可以覆盖文字，需要自行留出空间；“恢复自动位置”回到模板摆放与尺寸。独立 HTML 导出仍使用模板自动布局，请用 PDF 保留手动图片摆放。
 
 页面自动保存。刷新恢复浏览器草稿；与CLI同时修改发生冲突时，保留草稿并提示处理。PDF首次生成要启动后台浏览器，之后复用渲染页面和已生成的预览。
 
@@ -172,6 +203,25 @@ node cli.js render --browser-path "/path/to/chrome" --output output/preview
 node cli.js settings --file resume.paper.json --patch settings.json
 ```
 
+## 内容优化
+
+安装 skill 后，可直接对 Codex 说：“结合这份 JD 优化我的简历”，或“只润色表达，不夸大经历”。内容理解、诊断和改写由当前 Agent 完成；CLI 不调用模型，不需要额外 API。排版与内容修改都作用于同一份简历。
+
+Agent 先阅读最新简历与目标岗位，指出具体问题，针对缺少的职责、行动或结果提问，再给出原文、改文与原因。支持产品、AI 产品、运营、算法、AI Infra、嵌入式、机器人、后端和通用岗位。默认关注行动与成果；`plain` 模式只改善表达，不强行量化。示例数字与待补充建议不会写入正式简历。
+
+```bash
+# 准备内容优化上下文；JD、brief 为可选的 UTF-8 文本文件
+node cli.js content --id ID --target 'AI产品经理' --role ai-product --mode impact --jd tmp/jd.txt --output tmp/content-input.json
+# Agent 根据准备包和对话生成方案，完整结构见 schema 的 content 字段
+node cli.js content --id ID --action preview --plan tmp/content-plan.json --output tmp/content-review.md
+# 应用选定修改；不传 select 则选择全部 ready 项
+node cli.js content --id ID --action apply --plan tmp/content-plan.json --select c1,c3 --dry-run
+node cli.js content --id ID --action apply --plan tmp/content-plan.json --select c1,c3
+node cli.js render --id ID --output output/content-updated
+```
+
+准备和预览不改简历，应用时自动备份并检查版本；原文已被手动修改时旧方案会拒绝写入。CLI 检查精确引用、新增数字、示例标记和修改范围，不能自动证明经历真实，事实含义仍由 Agent 和用户核对。浏览器仍负责手动编辑与预览；内容优化在 Codex 对话中进行。流程细节见 [内容优化 skill](skills/paper-resume/references/content-optimization.md)。
+
 ## CLI与Agent
 
 CLI本身不调用模型。用户将自然语言请求交给自己的Agent，Agent读取文档后执行CLI。Agent先读[AGENT_GUIDE.md](AGENT_GUIDE.md)，读取当前版本，批量修改，再生成预览检查结果。Computer Use可检查页面交互，常规修改直接用CLI。
@@ -210,8 +260,8 @@ node cli.js render --id DOCUMENT_ID --output output/preview
 | 命令 | 用途 |
 | --- | --- |
 | `init --input resume.md` | 新建主文档，已有文件默认不覆盖 |
-| `import --input resume.pdf --dry-run` | 查看解析结果；去掉`--dry-run`后正式导入 |
-| `templates` / `template --name projects` | 列出模板 / 为已有正文补充缺少的章节标题 |
+| `import --input resume.pdf --dry-run` | 查看解析结果；正式导入默认新建并自动排版，可用`--structure`传入核对后的结构 |
+| `templates` / `template --name projects` | 列出模板 / 重排真实章节并应用模板样式 |
 | `style` / `row` / `replace` | 修改局部样式 / 分列 / 精确替换 |
 | `normalize-spaces` | 清理中英、数字之间的单个空格，保留语法及连续空格 |
 | `image --input photo.png --kind photo` | 添加证件照；标志用`--kind logo --heading 标题` |
@@ -231,9 +281,9 @@ CLI标准输出是JSON，成功退出码0、普通错误1、一页压缩失败2�
 | `projects` | 工作、个人项目、教育、技能 |
 | `internship` | 教育、实习、校园、项目，含示例证件照 |
 | `academic` | 英文教育、科研、论文、项目 |
-| `bilingual` | 中文一页、英文一页 |
+| `bilingual` | 中英文分开排版，允许自然续页 |
 | `research` | 中文科研与论文，CLI可选，首页不单独展示 |
-| `preserve` | 导入时保留原文，不补充标题 |
+| `preserve` | 导入时保留现有样式和顺序 |
 
 首页效果图来自`templates/examples/`的完整示例；起始模板在`templates/*.md`。示例公司、学校、经历均为虚构，使用前请替换。
 

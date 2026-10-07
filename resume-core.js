@@ -1,13 +1,15 @@
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./text-style.js'));
-  else root.PaperCore = factory({readLineStyle, writeLineStyle});
-})(typeof globalThis === 'object' ? globalThis : this, function (styles) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./text-style.js'),require('./resume-structure.js'),require('./template-profiles.js'));
+  else root.PaperCore = factory({readLineStyle, writeLineStyle},root.PaperStructure,root.PaperTemplates);
+})(typeof globalThis === 'object' ? globalThis : this, function (styles, structure, profiles) {
   'use strict';
   const defaults = {theme:'ink', fontSize:'11', density:'normal', fontFamily:'serif', targetPages:'1', marginVertical:'12', marginHorizontal:'14', showGuides:true, experienceGap:'4', experienceInner:'1',marginTop:'',marginBottom:'',lineHeight:'',pageSpacing:''};
   const settingSchema = {
+    imagePositions:{type:'imagePositions'},
+    templateId:{enum:['','projects','internship','research','academic','bilingual']},
     theme:{enum:['ink','forest','navy']}, fontSize:{min:8,max:36},
-    density:{enum:['compact','normal','airy']}, fontFamily:{allowCustom:true,maxLength:80,enum:['serif','sans','yahei','times','arial','calibri','simsun','kaiti','fangsong']}, targetPages:{enum:['1','2','3']},
-    marginVertical:{min:6,max:30}, marginTop:{min:6,max:30,optional:true}, marginBottom:{min:6,max:30,optional:true}, lineHeight:{min:1,max:2,optional:true}, pageSpacing:{min:0,max:20,optional:true}, marginHorizontal:{min:8,max:30}, experienceGap:{min:0,max:15}, roleGap:{min:0,max:10,optional:true}, experienceInner:{min:0,max:6}, showGuides:{type:'boolean'}
+    density:{enum:['compact','normal','airy']}, fontFamily:{allowCustom:true,maxLength:80,enum:['serif','sans','yahei','times','arial','calibri','simsun','kaiti','fangsong']}, targetPages:{enum:['auto','1','2','3']},
+    marginVertical:{min:6,max:30}, marginTop:{min:6,max:30,optional:true}, marginBottom:{min:6,max:30,optional:true}, lineHeight:{min:1,max:2,optional:true}, pageSpacing:{min:0,max:20,optional:true}, photoHeight:{min:8,max:65,optional:true}, marginHorizontal:{min:8,max:30}, experienceGap:{min:0,max:15}, roleGap:{min:0,max:10,optional:true}, experienceInner:{min:0,max:6}, showGuides:{type:'boolean'}
   };
   function fail(message, code='INVALID_INPUT') { const error=new Error(message); error.code=code; throw error; }
   function normalizeSettings(input={}, base=defaults) {
@@ -16,11 +18,33 @@
     for (const [key,value] of Object.entries(input)) {
       const rule=settingSchema[key];
       if (!rule) fail(`未知设置：${key}`);
+      if(rule.type==='imagePositions'){
+        if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>200)fail('图片位置无效');
+        const positions=Object.create(null);
+        for(const [id,position] of Object.entries(value)){
+          if(!id||id.length>300000||!position||typeof position!=='object')fail('图片位置无效');
+          const keys=['page','x','y','width','height'];if(Object.keys(position).some(k=>!keys.includes(k)&&k!=='layoutHeight')||keys.some(k=>typeof position[k]!=='number'||!Number.isFinite(position[k])))fail('图片位置无效');
+          if(!Number.isInteger(position.page)||position.page<1||position.page>50||position.x<0||position.y<0||position.width<=0||position.height<=0||position.x+position.width>211||position.y+position.height>298)fail('图片不能超出页面');
+          if(position.layoutHeight!==undefined&&(!Number.isFinite(position.layoutHeight)||position.layoutHeight<=0||position.layoutHeight>298))fail('图片布局高度无效');
+          positions[id]={...position};
+        }
+        result[key]=positions;continue;
+      }
       if(rule.optional && value===''){result[key]='';continue;}
       if (rule.type==='boolean') { if (typeof value!=='boolean') fail(`${key} 必须为布尔值`); result[key]=value; }
       else if (key==='fontFamily') { const name=typeof value==='string'?value.trim():''; if(!name || name.length>80 || !/^[\p{L}\p{N} ._()-]+$/u.test(name)) fail('字体请输入本机字体名称，最多80个字符'); result[key]=name; }
       else if (rule.enum) { if (!rule.enum.includes(String(value))) fail(`${key} 不在允许值中`); result[key]=String(value); }
       else { if (value === '' || value === null || typeof value === 'boolean' || !Number.isFinite(Number(value)) || Number(value)<rule.min || Number(value)>rule.max) fail(`${key} 必须在 ${rule.min}–${rule.max} 之间`); result[key]=String(Number(value)); }
+    }
+    // A partial photo-height setting updates manually placed portraits as well.
+    if(Object.hasOwn(input,'photoHeight')&&!Object.hasOwn(input,'imagePositions')&&result.imagePositions){
+      result.imagePositions={...result.imagePositions};
+      for(const [id,box] of Object.entries(result.imagePositions))if(id.startsWith('照片:')){
+        if(!result.photoHeight){delete result.imagePositions[id];continue;}
+        const height=Number(result.photoHeight),width=height*box.width/box.height;
+        if(width>209.8)fail('照片过宽，请减小高度');
+        result.imagePositions[id]={...box,layoutHeight:box.layoutHeight||box.height,width,height,x:Math.min(box.x,209.8-width),y:Math.min(box.y,297-height)};
+      }
     }
     return result;
   }
@@ -122,6 +146,9 @@
     if (!Array.isArray(operations) || !operations.length) fail('operations 必须为非空数组');
     for (const operation of operations) {
       if (!operation || typeof operation!=='object') fail('无效操作');
+      if (['set-structure','edit-block','move-section'].includes(operation.op)) {
+        result.markdown=structure.edit(result.markdown,operation,profiles[result.settings.templateId]); continue;
+      }
       if (operation.op==='settings') { result.settings=normalizeSettings(operation.values,result.settings); continue; }
       if (operation.op==='set-markdown') { if (typeof operation.markdown!=='string') fail('markdown 必须为字符串'); result.markdown=operation.markdown.replace(/\r\n?/g,'\n'); continue; }
       if (operation.op==='normalize-spaces') { result.markdown=cleanSpaces(result.markdown); continue; }
