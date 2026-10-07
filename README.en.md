@@ -2,6 +2,13 @@
 
 [中文](README.md)
 
+## Changes in this fork
+
+Maintained by [Zhoeyi / zaozhiyi](https://github.com/zaozhiyi), based on [GuanZhengPM/paper-resume](https://github.com/GuanZhengPM/paper-resume). This fork connects structured template imports, crisp PDF previews with direct image dragging/resizing, and role-aware Codex content consultation on the same editable resume. It adds revision-checked CLI operations and an installable companion skill.
+
+The pre-change baseline is `e59799b`; the implementation is authored by this account and was also contributed upstream through [PR #1](https://github.com/GuanZhengPM/paper-resume/pull/1). The original project documentation and license are retained below.
+
+
 Paper Resume is a local resume editor. Content is stored as Markdown. Edit it in the browser or ask your own agent to use the CLI. The preview shows actual PDF pages and uses the same PDF as the download.
 
 The Chinese name, 纸页 (zhiye, “a sheet of paper”), sounds like 职业 (zhiye, “career”). It represents a career story on a one-page resume.
