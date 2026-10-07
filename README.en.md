@@ -2,12 +2,11 @@
 
 [中文](README.md)
 
-## Changes in this fork
+## Changes in v1.1.0
 
-Maintained by [Zhoeyi / zaozhiyi](https://github.com/zaozhiyi), based on [GuanZhengPM/paper-resume](https://github.com/GuanZhengPM/paper-resume). This fork connects structured template imports, crisp PDF previews with direct image dragging/resizing, and role-aware Codex content consultation on the same editable resume. It adds revision-checked CLI operations and an installable companion skill.
+Originally developed by [GuanZhengPM](https://github.com/GuanZhengPM/paper-resume), with these improvements contributed by [Zhoeyi / zaozhiyi](https://github.com/zaozhiyi). This release connects structured template imports, crisp PDF previews with direct image dragging/resizing, and role-aware Codex content consultation on the same editable resume. It adds revision-checked CLI operations and an installable companion skill.
 
-The pre-change baseline is `e59799b`; the implementation is authored by this account and was also contributed upstream through [PR #1](https://github.com/GuanZhengPM/paper-resume/pull/1). The original project documentation and license are retained below.
-
+The pre-change baseline is `e59799b`; the [implementation commit](https://github.com/GuanZhengPM/paper-resume/commit/ae624aaba783d9d7aca713fd05debe1368e2dbe5) retains contributor attribution and was merged through [PR #1](https://github.com/GuanZhengPM/paper-resume/pull/1). The full project documentation and original license are retained below.
 
 Paper Resume is a local resume editor. Content is stored as Markdown. Edit it in the browser or ask your own agent to use the CLI. The preview shows actual PDF pages and uses the same PDF as the download.
 
