@@ -2,6 +2,17 @@
 
 [English](README.en.md)
 
+## v1.1.0 的主要改进
+
+纸页简历原项目由 [GuanZhengPM](https://github.com/GuanZhengPM/paper-resume) 开发，本次功能改进由 [Zhoeyi / zaozhiyi](https://github.com/zaozhiyi) 贡献。原项目提供本地 Markdown 编辑、CLI 和 PDF 导出；本次改进围绕“上传简历后套用可编辑模板，并在同一份文档中结合手动编辑与 Agent 内容修改”。
+
+- **导入与模板适配**：修正常见断行，整理章节和经历结构；保留额外栏目、可识别的原稿加粗与证件照，检查真实分页。
+- **预览与图片编辑**：改善高分屏清晰度，支持在 PDF 预览中拖动、等比例缩放图片，导出保留位置和尺寸。
+- **内容优化流程**：新增岗位诊断、经历追问、原文与改文对照、选择性应用；版本检查避免覆盖手动编辑。
+- **CLI 与 skill**：提供结构化导入和修改命令、Codex skill、安装说明与独立技能包，让网页和 Agent 操作同一份简历。
+
+改进前的基线是 [`e59799b`](https://github.com/GuanZhengPM/paper-resume/commit/e59799b1d7484bd35c6614faf1adf67eee0baf8d)，[功能提交](https://github.com/GuanZhengPM/paper-resume/commit/ae624aaba783d9d7aca713fd05debe1368e2dbe5)保留贡献者署名。此项改进已通过 [上游 PR #1](https://github.com/GuanZhengPM/paper-resume/pull/1) 合入原项目。以下是完整使用说明与原有许可证。
+
 纸页简历是在本机运行的简历编辑器。正文用Markdown保存，可以在页面编辑，也可以由Agent通过CLI修改。右侧预览显示实际PDF分页，导出的是同一份PDF。
 
 “纸页”与“职业”（zhiye）谐音，寓意把职业经历整理成一页纸简历。
