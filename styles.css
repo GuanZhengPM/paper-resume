@@ -35,3 +35,4 @@ body.sidebar-open #edit-view{grid-template-columns:minmax(240px,38%) minmax(0,1f
 .image-resize-handle{display:none;position:absolute;width:10px;height:10px;border:1.5px solid #4b8066;background:white;box-sizing:border-box;border-radius:2px;touch-action:none}
 .preview-image.selected .image-resize-handle,.preview-image:hover .image-resize-handle{display:block}
 .handle-nw{left:-5px;top:-5px;cursor:nwse-resize}.handle-ne{right:-5px;top:-5px;cursor:nesw-resize}.handle-sw{left:-5px;bottom:-5px;cursor:nesw-resize}.handle-se{right:-5px;bottom:-5px;cursor:nwse-resize}
+.pdf-link{position:absolute;display:block;z-index:3;cursor:pointer;border-radius:2px}.pdf-link:hover{background:#355d4718}

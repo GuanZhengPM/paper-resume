@@ -1,11 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto'),{once}=require('node:events');
 const renderer=require('../lib/render'),store=require('../lib/document-store');
 test('PDF preview matches Retina pixels and rerenders when the available width changes',{timeout:45000},async()=>{
- const file=path.resolve('tmp/tests',randomUUID(),'resume.paper.json');const original=store.commit(file,{markdown:'# Example Name\n## Experience\nReadable preview at every window size.'},null).document;
+ const file=path.resolve('tmp/tests',randomUUID(),'resume.paper.json');const original=store.commit(file,{markdown:'# Example Name\n## Experience\nReadable preview at every window size with [++link++](https://example.com).'},null).document;
  const server=require('../lib/server').start({file,port:0,quiet:true});await once(server,'listening');const browser=await renderer.launchBrowser();
  try{const context=await browser.newContext({viewport:{width:1440,height:1000},deviceScaleFactor:2}),page=await context.newPage();await page.goto('http://127.0.0.1:'+server.address().port+'/?resume=primary');
  const verify=async()=>{await page.waitForFunction(()=>{const c=document.querySelector('#pdf-pages canvas');return c&&Math.abs(c.width/c.getBoundingClientRect().width-devicePixelRatio)<.02;});return page.locator('#pdf-pages canvas').evaluate(c=>c.width);};
- const first=await verify();assert.ok(first>1000);await page.setViewportSize({width:900,height:1000});const smaller=await verify();assert.ok(smaller<first);await page.setViewportSize({width:1920,height:1000});assert.ok(await verify()>smaller);assert.equal(store.load(file).revision,original.revision);
+ const first=await verify();assert.ok(first>1000);assert.equal(await page.locator('#pdf-pages .pdf-link').getAttribute('href'),'https://example.com/');await page.setViewportSize({width:900,height:1000});const smaller=await verify();assert.ok(smaller<first);await page.setViewportSize({width:1920,height:1000});assert.ok(await verify()>smaller);assert.equal(store.load(file).revision,original.revision);
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 });
 test('exported PDF retains both edges of a header portrait without changing text layout',{timeout:45000},async()=>{
