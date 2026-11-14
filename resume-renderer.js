@@ -192,13 +192,14 @@ function decorateExperiences(resume) {
     return true;
   });
   let activeLevel = 0;
+  let activeFromHeading = false;
   let hasPrevious = false;
   elements.forEach((element, index) => {
     const heading = /^H[1-6]$/.test(element.tagName);
     const next = elements.slice(index + 1).find(el => !el.matches('.layout-gap'));
     const previous = elements.slice(0,index).reverse().find(el => !el.matches('.layout-gap'));
-    const standaloneRow = element.matches('.layout-row[data-columns="3"]') && !previous?.classList.contains('experience-title');
-    if (standaloneRow && activeLevel) {
+    const standaloneRow = element.matches('.layout-row') && !previous?.classList.contains('experience-title');
+    if (element.matches('.layout-row[data-columns="3"]') && standaloneRow && activeLevel && activeFromHeading) {
       element.classList.add('role-title');
       return;
     }
@@ -210,10 +211,12 @@ function decorateExperiences(resume) {
     if (isEntry) {
       element.classList.add('experience-title');
       if (hasPrevious) element.classList.add('experience-separated');
-      activeLevel = heading ? Number(element.tagName[1]) : 4;
+      activeLevel = heading ? headingLevel : 4;
+      activeFromHeading = heading;
       hasPrevious = true;
     } else if (heading && (!activeLevel || Number(element.tagName[1]) <= activeLevel)) {
       activeLevel = 0;
+      activeFromHeading = false;
       hasPrevious = false;
     } else if (activeLevel) element.classList.add('experience-content');
   });

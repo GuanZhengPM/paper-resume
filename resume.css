@@ -47,6 +47,7 @@
 .paper .layout-row > div:nth-child(2) { text-align: center; }
 .paper .layout-row > div:last-child { text-align: right; font-size: var(--resume-font); color: #171717; font-variant-numeric: tabular-nums lining-nums; }
 .paper .layout-row[data-columns="2"] { grid-template-columns: minmax(0, 1fr) auto; }
+.paper h2 + .layout-row { margin-top: 2mm; }
 .paper h3 + .layout-row { margin-top: 0; margin-bottom: 1.3mm; }
 .paper .experience-title { margin-bottom: var(--experience-inner, 1mm); }
 .paper .experience-separated { margin-top: var(--experience-gap, 4mm); }
