@@ -202,7 +202,11 @@ function decorateExperiences(resume) {
       element.classList.add('role-title');
       return;
     }
-    const isEntry = (heading && (next?.matches('.layout-row') || element.querySelector('.entry-title'))) || standaloneRow;
+    // H1/H2 are document and section headings. A section can legitimately be
+    // followed by a row, but that must not make the section itself inherit
+    // experience-item spacing.
+    const headingLevel = heading ? Number(element.tagName[1]) : 0;
+    const isEntry = (heading && headingLevel >= 3 && (next?.matches('.layout-row') || element.querySelector('.entry-title'))) || standaloneRow;
     if (isEntry) {
       element.classList.add('experience-title');
       if (hasPrevious) element.classList.add('experience-separated');

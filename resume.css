@@ -42,7 +42,7 @@
 .paper .layout-right { text-align: right; }
 .paper .layout-left { text-align: left; }
 .paper .layout-center h3, .paper .layout-right h3, .paper .layout-left h3 { display: block; }
-.paper .layout-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 3mm; align-items: baseline; margin: 3mm 0 2mm; break-after: avoid; }
+.paper .layout-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 3mm; align-items: baseline; margin: 3mm 0 2mm; break-after: avoid; }
 .paper .layout-row > div { min-width: 0; }
 .paper .layout-row > div:nth-child(2) { text-align: center; }
 .paper .layout-row > div:last-child { text-align: right; font-size: var(--resume-font); color: #171717; font-variant-numeric: tabular-nums lining-nums; }
