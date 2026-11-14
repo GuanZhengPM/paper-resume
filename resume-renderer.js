@@ -61,7 +61,12 @@ marked.use({
       const attrs = lineStyleAttributes(parsed.style);
       if (depth === 3 && text.includes(' | ')) {
         const at = text.lastIndexOf(' | ');
-        return `<h3${attrs}><span class="entry-title">${marked.parseInline(text.slice(0, at))}</span><span class="entry-date">${marked.parseInline(text.slice(at + 3))}</span></h3>`;
+        const left = text.slice(0, at);
+        const dot = left.indexOf(' · ');
+        const titleHTML = dot < 0
+          ? marked.parseInline(left)
+          : `${marked.parseInline(left.slice(0, dot))}<span class="entry-subtitle">${marked.parseInline(left.slice(dot))}</span>`;
+        return `<h3${attrs}><span class="entry-title">${titleHTML}</span><span class="entry-date">${marked.parseInline(text.slice(at + 3))}</span></h3>`;
       }
       return `<h${depth}${attrs}>${marked.parseInline(text)}</h${depth}>`;
     },
@@ -222,6 +227,15 @@ function decorateExperiences(resume) {
   });
   for(const element of resume.children){if(element.matches('.page-break')){placeImages();imagePage=[];pageElements=[];continue;}pageElements.push(element);imagePage.push(...element.querySelectorAll('.resume-header-logo,.resume-photo,.resume-qr'));}
   placeImages();
+  for(const row of resume.querySelectorAll('.layout-row[data-columns="3"]')){
+    if(row.dataset.autoGrid){row.style.gridTemplateColumns='';delete row.dataset.autoGrid;}
+    if(row.style.gridTemplateColumns)continue;
+    const [left,,right]=row.children;if(!left||!right)continue;
+    const wrapped=cell=>cell.getBoundingClientRect().height>(parseFloat(getComputedStyle(cell).fontSize)||14)*1.9;
+    const leftWrapped=wrapped(left),rightWrapped=wrapped(right);
+    if(leftWrapped&&!rightWrapped){row.style.gridTemplateColumns='minmax(0, 1fr) auto auto';row.dataset.autoGrid='left';}
+    else if(rightWrapped&&!leftWrapped){row.style.gridTemplateColumns='auto auto minmax(0, 1fr)';row.dataset.autoGrid='right';}
+  }
 }
 
 return {create, decorateExperiences};

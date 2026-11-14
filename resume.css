@@ -1,7 +1,7 @@
 @font-face { font-family: "Resume Sans"; src: url("fonts/NotoSansSC.ttf") format("truetype"); font-style: normal; font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "Resume Serif"; src: url("fonts/NotoSerifSC.ttf") format("truetype"); font-style: normal; font-weight: 200 900; font-display: swap; }
 * { box-sizing: border-box; }
-.paper { --accent: #000; --resume-font: 11pt; --leading: 1.38; --section-gap: 2.5mm; --item-gap: 1.4mm; width: 210mm; min-height: 297mm; margin: 0 auto; padding: var(--margin-vertical, 12mm) var(--margin-horizontal, 14mm); background: #fff; box-shadow: 0 4px 25px #2339290d, 0 0 0 1px #dce1d7; color: #171717; font-family: "Times New Roman", "Resume Serif", serif; font-size: var(--resume-font); font-weight: 400; font-synthesis: style; line-height: var(--leading); overflow-wrap: anywhere; }
+.paper { --accent: #000; --resume-font: 11pt; --entry-font: calc(var(--resume-font) + 0.5pt); --leading: 1.38; --section-gap: 2.5mm; --item-gap: 1.4mm; width: 210mm; min-height: 297mm; margin: 0 auto; padding: var(--margin-vertical, 12mm) var(--margin-horizontal, 14mm); background: #fff; box-shadow: 0 4px 25px #2339290d, 0 0 0 1px #dce1d7; color: #171717; font-family: "Times New Roman", "Resume Serif", serif; font-size: var(--resume-font); font-weight: 400; font-synthesis: style; line-height: var(--leading); overflow-wrap: anywhere; }
 .paper[data-font="sans"] { font-family: "Resume Sans", "DengXian", sans-serif; }
 .paper[data-theme="ink"] { --accent: #000; }
 .paper[data-theme="forest"] { --accent: #2e5946; }
@@ -16,12 +16,14 @@
 .paper p { margin: 0 0 1.6mm; }
 .paper h1 ~ p:first-of-type { font-size: var(--resume-font); color: #171717; margin-bottom: 2.5mm; }
 .paper h2 { font-size: 14pt; font-weight: 750; color: var(--accent); margin: var(--section-gap) 0 1.5mm; padding-bottom: 0.6mm; border-bottom: 0.35mm solid var(--accent); letter-spacing: 0; line-height: 1.25; break-after: avoid; }
-.paper h3 { display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; font-size: 12pt; font-weight: 400; line-height: 1.3; margin: 1.7mm 0 1.3mm; break-after: avoid; }
+.paper h3 { display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; font-size: var(--entry-font); font-weight: 700; line-height: 1.3; margin: 1.7mm 0 1.3mm; break-after: avoid; }
 .paper h3 .entry-title { min-width: 0; }
+.paper h3 .entry-subtitle { font-size: var(--resume-font); font-weight: 400; color: #171717; }
 .paper h3:has(.entry-date) { clear: both; }
 .paper .page-spacing { display: none; }
 .paper h3 .entry-date { font-size: var(--resume-font); font-weight: 400; color: #171717; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums lining-nums; letter-spacing: 0; }
 .paper h4 { margin: 2mm 0; font-size: var(--resume-font); break-after: avoid; }
+.paper h4.experience-title, .paper .layout-row.experience-title > div:first-child { font-size: var(--entry-font); font-weight: 700; line-height: 1.3; }
 .paper ul, .paper ol { margin: 0 0 2mm; padding-left: 5mm; }
 .paper li { margin: 0 0 var(--item-gap); padding-left: 0.4mm; }
 .paper li::marker { color: var(--accent); }
@@ -47,7 +49,7 @@
 .paper .layout-row > div:nth-child(2) { text-align: center; }
 .paper .layout-row > div:last-child { text-align: right; font-size: var(--resume-font); color: #171717; font-variant-numeric: tabular-nums lining-nums; }
 .paper .layout-row[data-columns="2"] { grid-template-columns: minmax(0, 1fr) auto; }
-.paper h2 + .layout-row { margin-top: 2mm; }
+.paper h2 + h3, .paper h2 + h4, .paper h2 + .layout-row { margin-top: 2mm; }
 .paper h3 + .layout-row { margin-top: 0; margin-bottom: 1.3mm; }
 .paper .experience-title { margin-bottom: var(--experience-inner, 1mm); }
 .paper .experience-separated { margin-top: var(--experience-gap, 4mm); }
@@ -111,10 +113,9 @@
 
 /* Templates provide consistent hierarchy; explicit inline styles remain authoritative. */
 .paper[data-template]:not([data-template=""]) h2 { font-size:12pt; }
-.paper[data-template]:not([data-template=""]) h3 { font-size:11pt; font-weight:600; }
+.paper[data-template]:not([data-template=""]) h3, .paper[data-template]:not([data-template=""]) h4.experience-title, .paper[data-template]:not([data-template=""]) .layout-row.experience-title > div:first-child { font-size:var(--entry-font); font-weight:700; }
 .paper[data-template="internship"] h2 { border-bottom-width:.25mm; }
 .paper[data-template="academic"] h2 { font-size:13pt; }
-.paper[data-template="academic"] h3 { font-size:11pt; }
 
 /* Treat the identity text and portrait as one vertically balanced header. */
 .paper .photo-header{display:flex;flex-direction:column;justify-content:center}
